@@ -1,95 +1,71 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import InputField from '@/components/forms/InputField';
+import FooterLink from '@/components/forms/FooterLink';
+import {signInWithEmail, signUpWithEmail} from "@/lib/actions/auth.actions";
+import {toast} from "sonner";
+import {signInEmail} from "better-auth/api";
+import {useRouter} from "next/navigation";
 
-type SignInFormValues = {
-    email: string;
-    password: string;
-};
-
-export default function SignInPage() {
+const SignIn = () => {
+    const router = useRouter()
     const {
         register,
         handleSubmit,
-        formState: { errors },
-    } = useForm<SignInFormValues>();
-    const [loading, setLoading] = useState(false);
+        formState: { errors, isSubmitting },
+    } = useForm<SignInFormData>({
+        defaultValues: {
+            email: '',
+            password: '',
+        },
+        mode: 'onBlur',
+    });
 
-    const onSubmit = async (data: SignInFormValues) => {
-        setLoading(true);
+    const onSubmit = async (data: SignInFormData) => {
         try {
-            // 👇 Replace this with your sign-in logic (API call / auth provider)
-            console.log('Sign in with:', data);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
+            const result = await signInWithEmail(data);
+            if(result.success) router.push('/');
+        } catch (e) {
+            console.error(e);
+            toast.error('Sign in failed', {
+                description: e instanceof Error ? e.message : 'Failed to sign in.'
+            })
         }
-    };
+    }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-900 px-4">
-            <div className="w-full max-w-sm rounded-xl bg-gray-800 p-6 shadow-lg">
-                <h1 className="text-2xl font-bold text-white text-center mb-6">
-                    Sign in to your account
-                </h1>
+        <>
+            <h1 className="form-title">Welcome back</h1>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Email */}
-                    <div className="space-y-1">
-                        <Label htmlFor="email" className="text-gray-200">
-                            Email
-                        </Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="you@example.com"
-                            {...register('email', { required: 'Email is required' })}
-                        />
-                        {errors.email && (
-                            <p className="text-sm text-red-500">{errors.email.message}</p>
-                        )}
-                    </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <InputField
+                    name="email"
+                    label="Email"
+                    placeholder="contact@jsmastery.com"
+                    register={register}
+                    error={errors.email}
+                    validation={{ required: 'Email is required', pattern: /^\w+@\w+\.\w+$/ }}
+                />
 
-                    {/* Password */}
-                    <div className="space-y-1">
-                        <Label htmlFor="password" className="text-gray-200">
-                            Password
-                        </Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="••••••••"
-                            {...register('password', { required: 'Password is required' })}
-                        />
-                        {errors.password && (
-                            <p className="text-sm text-red-500">{errors.password.message}</p>
-                        )}
-                    </div>
+                <InputField
+                    name="password"
+                    label="Password"
+                    placeholder="Enter your password"
+                    type="password"
+                    register={register}
+                    error={errors.password}
+                    validation={{ required: 'Password is required', minLength: 8 }}
+                />
 
-                    {/* Submit Button */}
-                    <Button
-                        type="submit"
-                        className="w-full bg-yellow-500 hover:bg-yellow-600"
-                        disabled={loading}
-                    >
-                        {loading ? 'Signing in...' : 'Sign In'}
-                    </Button>
-                </form>
+                <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
+                    {isSubmitting ? 'Signing In' : 'Sign In'}
+                </Button>
 
-                {/* Footer Links */}
-                <p className="mt-4 text-sm text-gray-400 text-center">
-                    Don’t have an account?{' '}
-                    <a href="/sign-up" className="text-yellow-500 hover:underline">
-                        Sign up
-                    </a>
-                </p>
-            </div>
-        </div>
+                <FooterLink text="Don't have an account?" linkText="Create an account" href="/sign-up" />
+            </form>
+        </>
     );
-}
+};
+export default SignIn;
