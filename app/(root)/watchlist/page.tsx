@@ -48,15 +48,9 @@ export default function WatchlistPage() {
 
     const handleAddStock = () => {
         if (!newStock.trim()) return;
-        const newItem: Stock = {
-            name: newStock,
-            symbol: newStock.toUpperCase().slice(0, 4),
-            price: 100,
-            change: 0,
-            marketCap: '100B',
-            peRatio: 20,
-        };
-        setStocks([...stocks, newItem]);
+        // TODO: Fetch real stock data from API
+        // Example: const stockData = await searchStocks(newStock.trim());
+        // if (stockData[0]) { setStocks([...stocks, stockData[0]]); }
         setNewStock('');
     };
 
